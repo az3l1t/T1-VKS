@@ -1,0 +1,173 @@
+services:
+  postgres:
+    container_name: PostrgreSQL_container
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Chemege1.
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+    networks:
+      - t1_network
+    restart: unless-stopped
+
+  zipkin:
+    image: openzipkin/zipkin:2.23
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - t1_network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.7.0
+    restart: "no"
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    networks:
+      - t1_network
+
+  zookeeper:
+    image: zookeeper:3.9.2
+    restart: "no"
+    ports:
+      - "2181:2181"
+    networks:
+      - t1_network
+
+  config-server:
+    build:
+      context: ./config-server
+    ports:
+      - "8888:8888"
+    command: ["./wait-for-it.sh", "postgres", "5432", "--", "java", "-jar", "/app/config-server-0.0.1-SNAPSHOT.jar"]
+    environment:
+      - EUREKA_URL=http://discovery-server:8761/eureka
+      - ZIPKIN=http://zipkin:9411
+    depends_on:
+      - postgres
+    volumes:
+      - ./config-server/src/main/resources/configurations:/configurations
+      - ./config-server/target/config-server-0.0.1-SNAPSHOT.jar:/app/config-server-0.0.1-SNAPSHOT.jar
+    networks:
+      - t1_network
+
+  discovery-server:
+    build:
+      context: ./discovery-server
+    ports:
+      - "8761:8761"
+    command:  ["./wait-for-it.sh", "config-server", "8888", "--", "java", "-jar", "/app/discovery-server-0.0.1-SNAPSHOT.jar"]
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+    depends_on:
+      - config-server
+    volumes:
+      - ./discovery-server/target/discovery-server-0.0.1-SNAPSHOT.jar:/app/discovery-server-0.0.1-SNAPSHOT.jar
+    networks:
+      - t1_network
+
+  gateway-server:
+    build:
+      context: ./gateway-server
+    ports:
+      - "5000:5000"
+    command: [ "./wait-for-it.sh", "discovery-server", "8761", "--", "java", "-jar", "/app/gateway-server-0.0.1-SNAPSHOT.jar" ]
+    environment:
+      - EUREKA_URL=http://discovery-server:8761/eureka
+      - CONFIG_SERVER_URL=http://config-server:8888
+    depends_on:
+      - discovery-server
+    volumes:
+      - ./gateway-server/target/gateway-server-0.0.1-SNAPSHOT.jar:/app/gateway-server-0.0.1-SNAPSHOT.jar
+    networks:
+      - t1_network
+
+  auth-server:
+    build:
+      context: ./authentication-server
+    ports:
+      - "8000:8000"
+    command: ["./wait-for-it.sh", "gateway-server", "5000", "--", "java", "-jar", "/app/authentication-server-0.0.1-SNAPSHOT.jar"]
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - DB_URL=jdbc:postgresql://postgres:5432/users
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=Chemege1.
+      - EUREKA_URL=http://discovery-server:8761/eureka
+    volumes:
+      - ./authentication-server/target/authentication-server-0.0.1-SNAPSHOT.jar:/app/authentication-server-0.0.1-SNAPSHOT.jar
+    networks:
+      - t1_network
+    depends_on:
+      - config-server
+
+  slots-server:
+    build:
+      context: ./slots-server
+    ports:
+      - "8010:8010"
+      - "8889:8889"
+    command: ["./wait-for-it.sh", "config-server", "8888", "--", "java", "-jar", "/app/slots-server-0.0.1-SNAPSHOT.jar"]
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - DB_URL=jdbc:postgresql://postgres:5432/slots
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=Chemege1.
+      - EUREKA_URL=http://discovery-server:8761/eureka
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    volumes:
+      - ./slots-server/target/slots-server-0.0.1-SNAPSHOT.jar:/app/slots-server-0.0.1-SNAPSHOT.jar
+      - ./slots-server/src/main/resources/app/credentials.json:/app/credentials.json
+      - ./slots-server/tokens:/tokens
+    networks:
+      - t1_network
+    depends_on:
+      - auth-server
+
+  notification-server:
+    build:
+      context: ./notification-server
+    ports:
+      - "8020:8020"
+    command: ["./wait-for-it.sh", "config-server", "8888", "--", "java", "-jar", "/app/notification-server-0.0.1-SNAPSHOT.jar"]
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_URL=http://discovery-server:8761/eureka
+
+    volumes:
+      - ./notification-server/target/notification-server-0.0.1-SNAPSHOT.jar:/app/notification-server-0.0.1-SNAPSHOT.jar
+    networks:
+      - t1_network
+    depends_on:
+      - slots-server
+
+networks:
+  t1_network:
+    driver: bridge
+
+volumes:
+  postgres:
+  config-server:
+  auth-server:
+  slots-server:
+  kafka_data:
+  notification-server:

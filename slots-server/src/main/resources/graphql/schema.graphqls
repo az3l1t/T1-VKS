@@ -1,0 +1,20 @@
+type Slot {
+    id: Int
+    startTime: String
+    endTime: String
+    booked: Boolean
+    bookedBy: String
+    employeeName: String
+    employeeEmail: String
+    sequence: String
+}
+
+type Query {
+    getAvailableSlotsForDate(date: String!): [Slot]
+    getSlotPerUser(bookedBy: String!): Slot
+}
+
+type Mutation {
+    handleSlotBooking(date: String!, time: String!, bookedBy: String!): String
+    cancelSlotBooking(date: String!, time: String!, bookedBy: String!): String
+}

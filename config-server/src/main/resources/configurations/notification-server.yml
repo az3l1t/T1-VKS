@@ -1,0 +1,33 @@
+server:
+  port: 8020
+spring:
+  zipkin:
+    base-url: ${ZIPKIN:http://localhost:9411}
+  sleuth:
+    sampler:
+      probability: 1.0
+  mail:
+    host: smtp.mail.ru
+    port: 587
+    username: eternity_cr9p@mail.ru
+    password: aC1GWmrqiGERDv6brxVz
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:http://localhost:9092}
+    consumer:
+      group-id: notification-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    preferIpAddress: true

@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/users}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:Chemege1.}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  flyway:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/users}
+    user: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:Chemege1.}
+  zipkin:
+    base-url: ${ZIPKIN:http://localhost:9411}
+  sleuth:
+    sampler:
+      probability: 1.0
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    preferIpAddress: true
+
+server:
+  port: 8000

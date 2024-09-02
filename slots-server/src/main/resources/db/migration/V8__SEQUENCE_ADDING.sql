@@ -1,0 +1,2 @@
+ALTER TABLE slots
+    ADD COLUMN sequence VARCHAR(100);

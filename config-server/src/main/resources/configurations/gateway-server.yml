@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: gateway-server
+  zipkin:
+    base-url: ${ZIPKIN:http://localhost:9411}
+  sleuth:
+    sampler:
+      probability: 1.0
+  cloud:
+    gateway:
+      routes:
+        - id: auth-server
+          uri: http://auth-server:8000
+          predicates:
+            - Path=/api/v1/auth/**
+        - id: slots-server-graphql
+          uri: http://slots-server:8010
+          predicates:
+            - Path=/graphql/**
+        - id: slots-server-rest
+          uri: http://slots-server:8010
+          predicates:
+            - Path=/api/v1/employees/**
+      metadata:
+        cors:
+          allowedOrigins: "https://10.4.56.69/"
+          allowedMethods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          allowedHeaders: "*"
+          allowCredentials: true
+          maxAge: 3600
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    preferIpAddress: true
+server:
+  port: 5000

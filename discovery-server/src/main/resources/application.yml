@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: discovery-server
+  config:
+    # needs to be changed in production
+    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
