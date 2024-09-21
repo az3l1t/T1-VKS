@@ -4,7 +4,6 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
-import net.az3l1t.slots_server.client.AuthenticationClient;
 import net.az3l1t.slots_server.core.Slot;
 import net.az3l1t.slots_server.repository.SlotRepository;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -24,13 +23,11 @@ public class EmployeeService implements net.az3l1t.slots_server.service.g.Employ
     private final SlotRepository slotRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    private final AuthenticationClient authenticationClient;
     private final Calendar calendar;
 
-    public EmployeeService(SlotRepository slotRepository, KafkaTemplate<String, String> kafkaTemplate, AuthenticationClient authenticationClient, Calendar calendar) {
+    public EmployeeService(SlotRepository slotRepository, KafkaTemplate<String, String> kafkaTemplate, Calendar calendar) {
         this.slotRepository = slotRepository;
         this.kafkaTemplate = kafkaTemplate;
-        this.authenticationClient = authenticationClient;
         this.calendar = calendar;
     }
 

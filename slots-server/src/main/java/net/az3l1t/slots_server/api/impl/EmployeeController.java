@@ -1,7 +1,6 @@
 package net.az3l1t.slots_server.api.impl;
 
 import net.az3l1t.slots_server.service.impl.EmployeeService;
-import net.az3l1t.slots_server.service.impl.SlotService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,11 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
-    private final SlotService slotService;
 
-    public EmployeeController(EmployeeService employeeService, SlotService slotService) {
+    public EmployeeController(EmployeeService employeeService) {
         this.employeeService = employeeService;
-        this.slotService = slotService;
     }
 
     @PostMapping("/uploadSchedule")

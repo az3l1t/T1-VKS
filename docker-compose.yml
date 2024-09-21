@@ -63,9 +63,6 @@ services:
       - ZIPKIN=http://zipkin:9411
     depends_on:
       - postgres
-    volumes:
-      - ./config-server/src/main/resources/configurations:/configurations
-      - ./config-server/target/config-server-0.0.1-SNAPSHOT.jar:/app/config-server-0.0.1-SNAPSHOT.jar
     networks:
       - t1_network
 
@@ -79,8 +76,6 @@ services:
       - CONFIG_SERVER_URL=http://config-server:8888
     depends_on:
       - config-server
-    volumes:
-      - ./discovery-server/target/discovery-server-0.0.1-SNAPSHOT.jar:/app/discovery-server-0.0.1-SNAPSHOT.jar
     networks:
       - t1_network
 
@@ -95,8 +90,6 @@ services:
       - CONFIG_SERVER_URL=http://config-server:8888
     depends_on:
       - discovery-server
-    volumes:
-      - ./gateway-server/target/gateway-server-0.0.1-SNAPSHOT.jar:/app/gateway-server-0.0.1-SNAPSHOT.jar
     networks:
       - t1_network
 
@@ -112,8 +105,6 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=Chemege1.
       - EUREKA_URL=http://discovery-server:8761/eureka
-    volumes:
-      - ./authentication-server/target/authentication-server-0.0.1-SNAPSHOT.jar:/app/authentication-server-0.0.1-SNAPSHOT.jar
     networks:
       - t1_network
     depends_on:
@@ -133,10 +124,6 @@ services:
       - DB_PASSWORD=Chemege1.
       - EUREKA_URL=http://discovery-server:8761/eureka
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-    volumes:
-      - ./slots-server/target/slots-server-0.0.1-SNAPSHOT.jar:/app/slots-server-0.0.1-SNAPSHOT.jar
-      - ./slots-server/src/main/resources/app/credentials.json:/app/credentials.json
-      - ./slots-server/tokens:/tokens
     networks:
       - t1_network
     depends_on:
@@ -152,9 +139,6 @@ services:
       - CONFIG_SERVER_URL=http://config-server:8888
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - EUREKA_URL=http://discovery-server:8761/eureka
-
-    volumes:
-      - ./notification-server/target/notification-server-0.0.1-SNAPSHOT.jar:/app/notification-server-0.0.1-SNAPSHOT.jar
     networks:
       - t1_network
     depends_on:
